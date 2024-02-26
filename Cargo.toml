@@ -1,0 +1,12 @@
+[package]
+name = "svc-cli"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.1", features = ["derive"] }
+console = "0.15.8"
+mc-varint = "0.1.1"
+tokio = { version = "1.36.0", features = ["net", "rt", "rt-multi-thread", "macros", "time"] }
+url = "2.5.0"
+uuid = { version = "1.7.0", features = ["v4"] }

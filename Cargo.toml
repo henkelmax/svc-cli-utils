@@ -10,3 +10,11 @@ mc-varint = "0.1.1"
 tokio = { version = "1.36.0", features = ["net", "rt", "rt-multi-thread", "macros", "time"] }
 url = "2.5.0"
 uuid = { version = "1.7.0", features = ["v4"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "s"
+panic = "abort"
+strip = "symbols"
+debug = false

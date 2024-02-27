@@ -21,7 +21,7 @@ enum Commands {
 #[derive(Parser, Debug)]
 struct PortArgs {
     url: String,
-    #[arg(short, long)]
+    #[arg(short, long, value_parser = clap::value_parser!(u32).range(1..))]
     attempts: Option<u32>,
 }
 

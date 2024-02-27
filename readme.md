@@ -9,7 +9,7 @@ Command line utilities for [Simple Voice Chat](https://github.com/henkelmax/simp
 
 ## Usage
 
-- `svc --help`
-- `svc --version`
-- `svc ping --help`
-- `svc ping <URL> [--attempts <ATTEMPTS>]`
+- `svc --help` prints the command usage
+- `svc --version` shows the version
+- `svc ping --help` prints the command usage of the ping subcommand
+- `svc ping <URL> [--attempts <ATTEMPTS>]` pings a voice chat server

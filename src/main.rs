@@ -2,7 +2,7 @@ mod port_checker;
 
 use clap::{Parser};
 use console::style;
-use crate::Commands::PortChecker;
+use crate::Commands::Ping;
 use crate::port_checker::port_command;
 
 #[derive(Parser, Debug)]
@@ -14,8 +14,8 @@ struct Cli {
 
 #[derive(Parser, Debug)]
 enum Commands {
-    #[clap(aliases = & ["test", "ping"])]
-    PortChecker(PortArgs),
+    #[clap(aliases = & ["test", "port-checker"])]
+    Ping(PortArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -34,7 +34,7 @@ fn main() {
     }
 
     match opt.command.unwrap() {
-        PortChecker(args) => {
+        Ping(args) => {
             port_command(args);
         }
     }

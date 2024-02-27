@@ -1,0 +1,106 @@
+name: build
+
+on:
+  release:
+    types:
+      - created
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+
+  build-linux-x86-64:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Cargo build
+        run: |
+          cargo build --release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: svc-linux-x86-64
+          path: target/release/svc
+
+  build-macos-x86-64:
+    runs-on: macos-11
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Cargo build
+        run: |
+          cargo build --release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: svc-macos-x86-64
+          path: target/release/svc
+
+  build-macos-aarch64:
+    runs-on: macos-11
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Cargo build
+        run: |
+          cargo install cargo-xbuild
+          rustup target add aarch64-apple-darwin
+          cargo build --target=aarch64-apple-darwin --release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: svc-macos-aarch64
+          path: target/aarch64-apple-darwin/release/svc
+
+  build-windows-x86-64:
+    runs-on: windows-2019
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Cargo build
+        run: |
+          cargo build --release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: svc-windows-x86-64
+          path: target/release/svc.exe
+
+  upload-release-artefacts:
+    runs-on: ubuntu-20.04
+    needs: [build-linux-x86-64, build-macos-x86-64, build-macos-aarch64, build-windows-x86-64]
+    steps:
+      - name: Download linux-x86-64
+        uses: actions/download-artifact@v4
+        with:
+          name: svc-linux-x86-64
+          path: ./svc-linux-x86-64
+      - name: Download macos-x86-64
+        uses: actions/download-artifact@v4
+        with:
+          name: svc-macos-x86-64
+          path: ./svc-macos-x86-64
+      - name: Download macos-aarch64
+        uses: actions/download-artifact@v4
+        with:
+          name: svc-macos-aarch64
+          path: ./svc-macos-aarch64
+      - name: Download windows-x86-64
+        uses: actions/download-artifact@v4
+        with:
+          name: svc-windows-x86-64
+          path: ./svc-windows-x86-64
+      - name: Zip files
+        run: |
+          mkdir -p release/
+          zip -j release/svc-linux-x86-64.zip svc-linux-x86-64/*
+          zip -j release/svc-macos-x86-64.zip svc-macos-x86-64/*
+          zip -j release/svc-macos-aarch64.zip svc-macos-aarch64/*
+          zip -j release/svc-windows-x86-64.zip svc-windows-x86-64/*
+      - name: Upload release asset
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          files: ./release/*
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

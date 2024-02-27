@@ -54,7 +54,7 @@ pub async fn port_command(args: PortArgs) {
     for i in 1..=attempts {
         let ping = Ping { id: Uuid::new_v4(), timestamp: current_millis() };
 
-        println!("Pinging ({}/{})", i, attempts);
+        println!("Pinging... ({}/{})", i, attempts);
 
         let ping_result = send_ping(ip.as_str(), port, ping).await;
 
@@ -72,7 +72,7 @@ pub async fn port_command(args: PortArgs) {
         }
     }
 
-    println!("Timed out after {} attempts", attempts);
+    println!("{}", style(format!("Timed out after {} attempt(s)", attempts)).yellow());
 }
 
 async fn lookup(host: &str) -> io::Result<SocketAddr> {

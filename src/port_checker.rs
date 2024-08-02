@@ -28,26 +28,34 @@ pub async fn port_command(args: PortArgs) {
 
     let url = url_result.unwrap();
 
-    if url.domain().is_none() {
-        eprintln!("{}", style("No domain provided").red());
+    if url.host_str().is_none() {
+        eprintln!("{}", style("No host provided").red());
         return;
     }
-    let domain = url.domain().unwrap();
-    let ip_result = lookup(domain).await;
+    let host = url.host_str().unwrap();
+
+    let ip_result = lookup(host).await;
 
     if let Err(ref e) = ip_result {
-        eprintln!("{}", style(format!("Failed to look up host {}: {}", domain, e.to_string())).red());
+        eprintln!("{}", style(format!("Failed to look up host {}: {}", host, e.to_string())).red());
         return;
     }
 
-    let ip = ip_result.unwrap().ip().to_string();
-    let port = url.port().unwrap_or(DEFAULT_PORT);
+    let mut socket_addr = ip_result.unwrap();
 
-    if !domain.eq(&ip) {
+    let port = url.port().unwrap_or(DEFAULT_PORT);
+    socket_addr.set_port(port);
+
+    let mut ip = socket_addr.ip().to_string();
+    if socket_addr.is_ipv6() {
+        ip = format!("[{}]", ip);
+    }
+
+    if !host.eq(&ip) {
         println!("Resolved host to {}", ip);
     }
 
-    println!("Sending pings to {}:{}", ip, port);
+    println!("Sending pings to {}:", socket_addr.to_string());
 
     let attempts = args.attempts.unwrap_or(10);
 
@@ -56,10 +64,10 @@ pub async fn port_command(args: PortArgs) {
 
         println!("Pinging... ({}/{})", i, attempts);
 
-        let ping_result = send_ping(ip.as_str(), port, ping).await;
+        let ping_result = send_ping(socket_addr, ping).await;
 
         if let Err(ref e) = ping_result {
-            eprintln!("{}", style(format!("Failed to ping {}:{}: {}", domain, port, e.to_string())).red());
+            eprintln!("{}", style(format!("Failed to ping {}:{}: {}", host, port, e.to_string())).red());
             return;
         }
 
@@ -97,9 +105,13 @@ async fn lookup(host: &str) -> io::Result<SocketAddr> {
     ));
 }
 
-async fn send_ping(domain: &str, port: u16, ping: Ping) -> io::Result<PingResult> {
-    let socket = UdpSocket::bind("0.0.0.0:0").await?;
-    let dest_addr = format!("{}:{}", domain, port);
+async fn send_ping(socket_addr: SocketAddr, ping: Ping) -> io::Result<PingResult> {
+    let socket;
+    if socket_addr.is_ipv6() {
+        socket = UdpSocket::bind("[::1]:0").await?;
+    } else {
+        socket = UdpSocket::bind("0.0.0.0:0").await?;
+    }
 
     let mut buffer = Cursor::new(Vec::with_capacity(1 + 16 + 1 + 24));
 
@@ -110,7 +122,7 @@ async fn send_ping(domain: &str, port: u16, ping: Ping) -> io::Result<PingResult
     let data_length = VarInt::from(ping_bytes.len() as i32);
     buffer.write_var_int(data_length)?;
     buffer.write(&ping_bytes)?;
-    socket.send_to(&buffer.into_inner(), &dest_addr).await?;
+    socket.send_to(&buffer.into_inner(), &socket_addr.to_string()).await?;
 
     let mut recv_buffer = [0; 1024];
 

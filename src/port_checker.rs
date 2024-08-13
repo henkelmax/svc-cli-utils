@@ -108,7 +108,7 @@ async fn lookup(host: &str) -> io::Result<SocketAddr> {
 async fn send_ping(socket_addr: SocketAddr, ping: Ping) -> io::Result<PingResult> {
     let socket;
     if socket_addr.is_ipv6() {
-        socket = UdpSocket::bind("[::1]:0").await?;
+        socket = UdpSocket::bind("[::]:0").await?;
     } else {
         socket = UdpSocket::bind("0.0.0.0:0").await?;
     }

@@ -25,7 +25,7 @@ jobs:
           path: target/release/svc
 
   build-macos-x86-64:
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,7 +39,7 @@ jobs:
           path: target/release/svc
 
   build-macos-aarch64:
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
